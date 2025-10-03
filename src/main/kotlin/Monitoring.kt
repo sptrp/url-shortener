@@ -1,19 +1,14 @@
 package com.iponomarev
 
-import com.codahale.metrics.*
-import com.fasterxml.jackson.databind.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.metrics.dropwizard.*
-import io.ktor.server.plugins.calllogging.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import com.codahale.metrics.Slf4jReporter
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.metrics.dropwizard.DropwizardMetrics
+import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.request.path
+import org.slf4j.event.Level
 import java.util.concurrent.TimeUnit
-import org.slf4j.event.*
 
 fun Application.configureMonitoring() {
     install(DropwizardMetrics) {
