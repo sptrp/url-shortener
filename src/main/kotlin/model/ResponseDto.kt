@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ResponseDto(
-    val url: String
+    val url: String?
 )

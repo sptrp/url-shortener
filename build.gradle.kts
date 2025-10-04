@@ -25,8 +25,24 @@ dependencies {
     implementation(libs.ktor.server.metrics)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.netty)
-    implementation(libs.logback.classic)
     implementation(libs.ktor.server.config.yaml)
+
+    implementation(libs.logback.classic)
+
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.h2)
+
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
+
+tasks.test {
+    useJUnitPlatform()
+}
+

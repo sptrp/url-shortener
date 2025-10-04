@@ -1,5 +1,6 @@
 package com.iponomarev
 
+import com.iponomarev.database.DatabaseFactory
 import com.iponomarev.routing.configureRouting
 import io.ktor.server.application.Application
 
@@ -11,4 +12,6 @@ fun Application.module() {
     configureSerialization()
     configureMonitoring()
     configureRouting()
+
+    DatabaseFactory.init()
 }
