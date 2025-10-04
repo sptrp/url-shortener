@@ -1,4 +1,4 @@
-package com.iponomarev.database
+package com.iponomarev.integrationTests.database
 
 import com.iponomarev.database.table.Urls
 import com.iponomarev.service.UrlDatabaseService
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class UrlDatabaseServiceTest {
+class UrlDatabaseServiceIntegrationTest {
 
     private lateinit var urlDatabaseService: UrlDatabaseService
 
@@ -40,7 +40,7 @@ class UrlDatabaseServiceTest {
     }
 
     @Test
-    fun testInsertUrl_and_findByShortUrlCode() {
+    fun `test insertUrl and findByShortUrlCode return correct values`() {
         val originalUrl = "https://example.com"
         val shortCode = "abc123"
 
@@ -48,21 +48,16 @@ class UrlDatabaseServiceTest {
         Assertions.assertNotNull(inserted)
         Assertions.assertEquals(originalUrl, inserted.url)
         Assertions.assertEquals(shortCode, inserted.shortUrlCode)
-
-        val found = urlDatabaseService.findByShortUrlCode(shortCode)
-        Assertions.assertNotNull(found)
-        Assertions.assertEquals(originalUrl, found?.url)
-        Assertions.assertEquals(shortCode, found?.shortUrlCode)
     }
 
     @Test
-    fun testFindByUrl_returns_null_when_not_found() {
+    fun `test findByUrl returns null when not found`() {
         val found = urlDatabaseService.findByUrl("https://nonexistent.com")
         Assertions.assertNull(found)
     }
 
     @Test
-    fun testFindByUrl_returns_inserted_url() {
+    fun `test findByUrl returns inserted url`() {
         val originalUrl = "https://testurl.com"
         val shortCode = "xyz789"
         urlDatabaseService.insertUrl(originalUrl, shortCode)
@@ -70,5 +65,16 @@ class UrlDatabaseServiceTest {
         val found = urlDatabaseService.findByUrl(originalUrl)
         Assertions.assertNotNull(found)
         Assertions.assertEquals(shortCode, found?.shortUrlCode)
+    }
+
+    @Test
+    fun `test findByShortUrlCode returns inserted url`() {
+        val originalUrl = "https://testurl.com"
+        val shortCode = "xyz789"
+        urlDatabaseService.insertUrl(originalUrl, shortCode)
+
+        val found = urlDatabaseService.findByShortUrlCode(shortCode)
+        Assertions.assertNotNull(found)
+        Assertions.assertEquals(originalUrl, found?.url)
     }
 }
