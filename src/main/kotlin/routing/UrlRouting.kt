@@ -1,8 +1,12 @@
 package com.iponomarev.routing
 
+import com.iponomarev.config.ConfigProvider
 import com.iponomarev.model.RequestDto
 import com.iponomarev.model.ResponseDto
 import com.iponomarev.service.UrlProcessorService
+import com.iponomarev.service.UrlProcessorService.Companion.isValidUrl
+import com.iponomarev.util.formatShortUrl
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -15,48 +19,77 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.reflect.TypeInfo
-import java.net.MalformedURLException
-import java.net.URL
 
-const val API_URL = "url-shortener/api/"
+const val API_URL = "/api/v1"
 
+/**
+ * Configures the HTTP routing for the url-shortener.
+ *
+ * Sets up routing for URL shortening, URL redirect by short code,
+ * health check endpoint, and global exception handling.
+ *
+ * @receiver Application the url-shortener instance to configure
+ */
 fun Application.configureRouting() {
+    val configProvider = ConfigProvider(environment)
     val urlProcessorService = UrlProcessorService()
 
     install(StatusPages) {
+        exception<IllegalArgumentException> { call, cause ->
+            call.application.environment.log.warn("Bad request: ${cause.message}")
+            call.respond(HttpStatusCode.BadRequest, cause.message ?: "Bad Request")
+        }
+
+        exception<NoSuchElementException> { call, cause ->
+            call.application.environment.log.warn("Not found: ${cause.message}")
+            call.respond(HttpStatusCode.NotFound, cause.message ?: "Not Found")
+        }
+
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
+            call.application.environment.log.error("Unhandled exception", cause)
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                "Internal server error occurred. Please contact support."
+            )
         }
     }
 
     routing {
+
         route(API_URL) {
             post("/shortUrl") {
                 val request = call.receive<RequestDto>()
                 val url = request.url
 
-                // URL validation
-                try {
-                    URL(url)
-                } catch (e: MalformedURLException) {
+                if (!isValidUrl(request.url)) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid URL format")
                     return@post
                 }
 
-                val shortUrl = urlProcessorService.shorten(url)
+                val shortUrlCode = urlProcessorService.getShortURLCodeOrCreateNew(url)
+                val shortUrl = formatShortUrl(configProvider.appConfig.host, shortUrlCode)
                 call.respond(ResponseDto(url = shortUrl), typeInfo = TypeInfo(ResponseDto::class))
             }
+        }
 
-            get("/shortUrl/{hash}") {
-                val id = call.parameters["hash"] ?: throw IllegalArgumentException("Hash parameter is required")
+        get("/{shortUrlCode}") {
+            val shortUrlCode = call.parameters["shortUrlCode"]
 
-                call.respond(
-                     ResponseDto(
-                        url = urlProcessorService.unshorten(id)
-                    ),
-                    typeInfo = TypeInfo(ResponseDto::class)
-                )
+            if (shortUrlCode == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing shortUrlCode")
+                return@get
             }
+
+            val originalUrl = urlProcessorService.getOriginalURL(shortUrlCode)
+            if (originalUrl != null) {
+                call.respond(ResponseDto(url = originalUrl))
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Original URL not found")
+            }
+        }
+
+        get("/healthcheck") {
+            call.respondText("OK", contentType = ContentType.Text.Plain)
         }
     }
 }

@@ -1,6 +1,15 @@
 ktor:
-    application:
-        modules:
-            - com.iponomarev.ApplicationKt.module
-    deployment:
-        port: 8080
+  application:
+    modules:
+      - com.iponomarev.ApplicationKt.module
+  deployment:
+    port: 8080
+
+app:
+  host: "https://shortify.com"
+
+db:
+  user: "iponomarev"
+  password: ""
+  driver: "org.h2.Driver"
+  url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;"
