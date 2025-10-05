@@ -1,6 +1,5 @@
 package com.iponomarev
 
-import com.iponomarev.repository.DatabaseFactory
 import com.iponomarev.routing.configureRouting
 import io.ktor.server.application.Application
 
@@ -9,13 +8,13 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    val skipDatabaseInit = environment.config.propertyOrNull("ktor.db.skipInitialisation")?.getString()?.toBoolean()
+    val skipDatabaseInit = environment.config.propertyOrNull("db.skipInitialisation")?.getString()?.toBoolean()
         ?: true
 
     configureAppLifecycle(skipDatabaseInit)
     configureDI()
     configureSerialization()
-    configureMonitoring()
+    // configureMonitoring()
     configureRouting()
 }
 

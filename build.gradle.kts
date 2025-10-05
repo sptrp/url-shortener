@@ -46,7 +46,14 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
+tasks.named<JavaExec>("run") {
+    val env = project.findProperty("env") as String? ?: "prod"
+    jvmArgs = listOf("-Dconfig.resource=application-$env.yml")
+}
+
 tasks.test {
     useJUnitPlatform()
+
+    systemProperty("config.resource", "application-test.yml")
 }
 

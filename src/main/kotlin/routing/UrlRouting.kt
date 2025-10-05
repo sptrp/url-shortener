@@ -13,7 +13,9 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -24,12 +26,24 @@ import org.koin.ktor.ext.inject
 const val API_URL = "/api/v1"
 
 /**
- * Configures the HTTP routing for the url-shortener.
+ * Configures the HTTP routing for the url-shortener application.
  *
- * Sets up routing for URL shortening, URL redirect by short code,
- * health check endpoint, and global exception handling.
+ * Sets up:
+ * - POST [API_URL]/shortUrl to receive a [RequestDto] and respond with a [ResponseDto] containing the shortened URL.
+ * - GET [API_URL]/{shortUrlCode} to retrieve the original URL as a [ResponseDto] in JSON format.
+ * - GET /{shortUrlCode} as a permanent redirect (HTTP 301) to the original URL.
+ * - GET /healthcheck endpoint for simple health status.
  *
- * @receiver Application the url-shortener instance to configure
+ * Installs the [StatusPages] plugin handling common exceptions:
+ * - [IllegalArgumentException] returns HTTP 400 with details.
+ * - [NoSuchElementException] returns HTTP 404 with details.
+ * - Other exceptions return HTTP 500 with a generic error.
+ *
+ * @receiver Application the Ktor application instance to configure routing on.
+ *
+ * @see [RequestDto]
+ * @see [ResponseDto]
+ * @see [UrlProcessorService]
  */
 fun Application.configureRouting() {
     val configProvider = ConfigProvider(environment)
@@ -64,6 +78,12 @@ fun Application.configureRouting() {
     routing {
 
         route(API_URL) {
+            /**
+             * POST [API_URL]/shortUrl
+             * Receives JSON { "url": "<url>" } to shorten. @see [RequestDto]
+             * Responds with [ResponseDto] containing shortened URL or error.
+             * @see [UrlProcessorService]
+             */
             post("/shortUrl") {
                 val request = call.receive<RequestDto>()
                 val url = request.url
@@ -83,34 +103,59 @@ fun Application.configureRouting() {
                     typeInfo = TypeInfo(ResponseDto::class)
                 )
             }
+
+            /**
+             * GET [API_URL]/{shortUrlCode}
+             * GET route to fetch the original URL, returns JSON [ResponseDto].
+             * @see [UrlProcessorService]
+             */
+            get("/{shortUrlCode}") {
+                val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
+                call.respond(ResponseDto(success = true, url = originalUrl, error = null))
+            }
         }
 
+        /**
+         * GET /{shortUrlCode}
+         * Redirects to the original URL
+         * Performs a permanent redirect (HTTP 301).
+         */
         get("/{shortUrlCode}") {
-            val shortUrlCode = call.parameters["shortUrlCode"]
-
-            if (shortUrlCode == null) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    ResponseDto(success = false, url = null, error = "Missing shortUrlCode")
-                )
-                return@get
-            }
-
-            val originalUrl = urlProcessorService.getOriginalURL(shortUrlCode)
-            if (originalUrl != null) {
-                call.respond(
-                    ResponseDto(success = true, url = originalUrl, error = null)
-                )
-            } else {
-                call.respond(
-                    HttpStatusCode.NotFound,
-                    ResponseDto(success = false, url = null, error = "Original URL not found")
-                )
-            }
+            val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
+            call.respondRedirect(originalUrl, permanent = true)
         }
 
         get("/healthcheck") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
     }
+}
+
+/**
+ * Fetches the original URL associated with a given short URL code.
+ * Validates input and sends appropriate HTTP responses with [ResponseDto] on failure cases.
+ *
+ * @param urlProcessorService The service used to look up the original URL.
+ * @param shortUrlCode nullable short URL code.
+ * @return The original URL if found, null if not found or input invalid (with response sent).
+ */
+private suspend fun RoutingCall.fetchOriginalUrl(urlProcessorService: UrlProcessorService, shortUrlCode: String?): String? {
+    if (shortUrlCode == null) {
+        respond(
+            HttpStatusCode.BadRequest,
+            ResponseDto(success = false, url = null, error = "Missing shortUrlCode")
+        )
+        return null
+    }
+
+    val originalUrl = urlProcessorService.getOriginalURL(shortUrlCode)
+    if (originalUrl == null) {
+        respond(
+            HttpStatusCode.NotFound,
+            ResponseDto(success = false, url = null, error = "Original URL not found")
+        )
+        return null
+    }
+
+    return originalUrl
 }

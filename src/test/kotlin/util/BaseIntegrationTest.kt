@@ -1,8 +1,8 @@
 package util
 
-import com.iponomarev.repository.table.Urls
 import com.iponomarev.module
 import com.iponomarev.repository.UrlRepository
+import com.iponomarev.repository.table.Urls
 import com.iponomarev.service.UrlDatabaseService
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.ApplicationConfig

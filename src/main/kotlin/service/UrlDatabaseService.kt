@@ -1,8 +1,8 @@
 package com.iponomarev.service
 
+import com.iponomarev.repository.UrlRepository
 import com.iponomarev.repository.entity.UrlEntity
 import com.iponomarev.repository.table.Urls
-import com.iponomarev.repository.UrlRepository
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class UrlDatabaseService : UrlRepository {

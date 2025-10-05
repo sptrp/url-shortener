@@ -1,8 +1,8 @@
 package integration
 
-import util.BaseIntegrationTest
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
+import util.BaseIntegrationTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

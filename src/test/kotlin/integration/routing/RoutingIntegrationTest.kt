@@ -16,15 +16,20 @@ import io.ktor.http.contentType
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.BeforeEach
-import util.BaseIntegrationTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
+import util.BaseIntegrationTest
 import kotlin.test.assertEquals
 
 class RoutingIntegrationTest : BaseIntegrationTest() {
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
+    companion object {
+        private const val API_URL = "/api/v1"
+        private const val POST_SHORT_URL = "$API_URL/shortUrl"
+    }
 
     @BeforeEach
     fun cleanUp() {
@@ -37,7 +42,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `POST shortUrl returns shortened URL`() = testing {
         val requestDto = RequestDto("https://example.com/test/path")
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(requestDto))
         }
@@ -52,14 +57,14 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         assertEquals(null, responseDto.error)
 
         assertNotNull(persisted)
-        assertEquals(persisted?.url, requestDto.url)
-        assertEquals(persisted?.shortUrlCode, responseDto.url?.substringAfterLast("/"))
+        assertEquals(persisted.url, requestDto.url)
+        assertEquals(persisted.shortUrlCode, responseDto.url?.substringAfterLast("/"))
     }
 
     @Test
     fun `POST shortUrl with invalid URL returns bad request`() = testing {
         val requestDto = RequestDto("invalid_url")
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(requestDto))
         }
@@ -80,7 +85,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `GET original URL returns original URL`() = testing {
         val originalUrl = "https://example.com/test/path"
         val postReq = RequestDto(originalUrl)
-        val postResponse = client.post("/api/v1/shortUrl") {
+        val postResponse = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody(objectMapper.writeValueAsString(postReq))
         }
@@ -88,7 +93,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = postResDto.url ?: error("Missing shortened URL")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val getResponse = client.get("/$shortCode")
+        val getResponse = client.get("$API_URL/$shortCode")
 
         assertEquals(HttpStatusCode.OK, getResponse.status)
 
@@ -100,7 +105,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
 
     @Test
     fun `GET non-existing shortUrl returns not found`() = testing {
-        val response = client.get("/nonexistentCode")
+        val response = client.get("$API_URL/nonexistentCode")
 
         assertEquals(HttpStatusCode.NotFound, response.status)
 
@@ -114,7 +119,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL without path`() = testing {
         val originalUrlNoPath = "https://example.com"
 
-        val shortenResponse = client.post("/api/v1/shortUrl") {
+        val shortenResponse = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$originalUrlNoPath"}""")
         }
@@ -124,7 +129,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = shortenDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieveResponse = client.get("/$shortCode")
+        val retrieveResponse = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieveResponse.status)
 
         val retrieveDto: ResponseDto = objectMapper.readValue(retrieveResponse.bodyAsText())
@@ -143,11 +148,11 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val url1 = "https://example1.com/page"
         val url2 = "https://example2.com/page"
 
-        val shortenResponse1 = client.post("/api/v1/shortUrl") {
+        val shortenResponse1 = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url1"}""")
         }
-        val shortenResponse2 = client.post("/api/v1/shortUrl") {
+        val shortenResponse2 = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url2"}""")
         }
@@ -167,11 +172,11 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val code1 = dto1.url!!.substringAfterLast("/")
         val code2 = dto2.url!!.substringAfterLast("/")
 
-        val response1 = client.get("/$code1")
+        val response1 = client.get("$API_URL/$code1")
         val resDto1: ResponseDto = objectMapper.readValue(response1.bodyAsText())
         assertEquals(url1, resDto1.url)
 
-        val response2 = client.get("/$code2")
+        val response2 = client.get("$API_URL/$code2")
         val resDto2: ResponseDto = objectMapper.readValue(response2.bodyAsText())
         assertEquals(url2, resDto2.url)
     }
@@ -180,7 +185,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL with trailing slash`() = testing {
         val url = "https://example.com/path/"
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url"}""")
         }
@@ -190,7 +195,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = responseDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieved = client.get("/$shortCode")
+        val retrieved = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieved.status)
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())
@@ -201,7 +206,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL with query parameters`() = testing {
         val url = "https://example.com/page?name=alice&ref=123"
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url"}""")
         }
@@ -212,7 +217,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = responseDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieved = client.get("/$shortCode")
+        val retrieved = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieved.status)
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())
@@ -223,7 +228,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL with uppercase and lowercase`() = testing {
         val url = "https://Example.COM/Path/Page"
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url"}""")
         }
@@ -233,7 +238,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = responseDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieved = client.get("/$shortCode")
+        val retrieved = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieved.status)
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())
@@ -245,7 +250,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL with unicode characters`() = testing {
         val url = "https://example.com/über/ßpecial"
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url"}""")
         }
@@ -255,7 +260,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = responseDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieved = client.get("/$shortCode")
+        val retrieved = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieved.status)
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())
@@ -266,7 +271,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
     fun `shorten URL with explicit port`() = testing {
         val url = "https://example.com:8080/path"
 
-        val response = client.post("/api/v1/shortUrl") {
+        val response = client.post(POST_SHORT_URL) {
             contentType(ContentType.Application.Json)
             setBody("""{"url":"$url"}""")
         }
@@ -276,7 +281,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
         val shortUrl = responseDto.url ?: error("No short URL returned")
         val shortCode = shortUrl.substringAfterLast("/")
 
-        val retrieved = client.get("/$shortCode")
+        val retrieved = client.get("$API_URL/$shortCode")
         assertEquals(HttpStatusCode.OK, retrieved.status)
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())

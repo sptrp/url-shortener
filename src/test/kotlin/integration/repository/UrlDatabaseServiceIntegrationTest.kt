@@ -1,12 +1,12 @@
 package integration.repository
 
 import com.iponomarev.repository.table.Urls
-import util.BaseIntegrationTest
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import util.BaseIntegrationTest
 
 class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
 
