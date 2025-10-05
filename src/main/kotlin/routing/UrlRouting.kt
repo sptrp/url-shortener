@@ -10,6 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -22,8 +23,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.reflect.TypeInfo
 import org.koin.ktor.ext.inject
-
-const val API_URL = "/api/v1"
 
 /**
  * Configures the HTTP routing for the url-shortener application.
@@ -48,6 +47,7 @@ const val API_URL = "/api/v1"
 fun Application.configureRouting() {
     val configProvider = ConfigProvider(environment)
     val urlProcessorService by inject<UrlProcessorService>()
+    val apiUrl = configProvider.appConfig.apiUrl
 
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -77,9 +77,9 @@ fun Application.configureRouting() {
 
     routing {
 
-        route(API_URL) {
+        route(apiUrl) {
             /**
-             * POST [API_URL]/shortUrl
+             * POST API_URL/shortUrl
              * Receives JSON { "url": "<url>" } to shorten. @see [RequestDto]
              * Responds with [ResponseDto] containing shortened URL or error.
              * @see [UrlProcessorService]
@@ -87,6 +87,8 @@ fun Application.configureRouting() {
             post("/shortUrl") {
                 val request = call.receive<RequestDto>()
                 val url = request.url
+
+                environment.log.info("POST $apiUrl/shortUrl from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
 
                 if (!isValidUrl(url)) {
                     call.respond(
@@ -105,11 +107,13 @@ fun Application.configureRouting() {
             }
 
             /**
-             * GET [API_URL]/{shortUrlCode}
+             * GET API_URL/{shortUrlCode}
              * GET route to fetch the original URL, returns JSON [ResponseDto].
              * @see [UrlProcessorService]
              */
             get("/{shortUrlCode}") {
+                environment.log.info("GET $apiUrl/{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
+
                 val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
                 call.respond(ResponseDto(success = true, url = originalUrl, error = null))
             }
@@ -121,6 +125,8 @@ fun Application.configureRouting() {
          * Performs a permanent redirect (HTTP 301).
          */
         get("/{shortUrlCode}") {
+            environment.log.info("GET /{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
+
             val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
             call.respondRedirect(originalUrl, permanent = true)
         }

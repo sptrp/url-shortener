@@ -11,6 +11,8 @@ import org.slf4j.event.Level
 import java.util.concurrent.TimeUnit
 
 fun Application.configureMonitoring() {
+    /* Enable if monitoring needed
+
     install(DropwizardMetrics) {
         Slf4jReporter.forRegistry(registry)
             .outputTo(this@configureMonitoring.log)
@@ -18,7 +20,8 @@ fun Application.configureMonitoring() {
             .convertDurationsTo(TimeUnit.MILLISECONDS)
             .build()
             .start(10, TimeUnit.SECONDS)
-    }
+    }*/
+
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }

@@ -1,6 +1,7 @@
 package com.iponomarev.repository
 
 import com.iponomarev.repository.table.Urls
+import com.iponomarev.util.getEnvOrConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.ApplicationConfig
@@ -13,11 +14,11 @@ object DatabaseFactory {
 
     fun init(config: ApplicationConfig) {
         val hikariConfig = HikariConfig().apply {
-            jdbcUrl = config.property("db.url").getString()
-            driverClassName = config.property("db.driver").getString()
-            username = config.property("db.user").getString()
-            password = config.property("db.password").getString()
-            maximumPoolSize = 5 // Adjust pool size as needed
+            jdbcUrl = getEnvOrConfig("db.url", "DB_URL", config)
+            driverClassName = getEnvOrConfig("db.driver", "DB_DRIVER", config)
+            username = getEnvOrConfig("db.user", "DB_USER", config)
+            password = getEnvOrConfig("db.password", "DB_PASSWORD", config)
+            maximumPoolSize = (System.getenv("DB_MAXIMUM_POOL_SIZE") ?: config.property("db.maximumPoolSize").getString()).toInt()
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         }

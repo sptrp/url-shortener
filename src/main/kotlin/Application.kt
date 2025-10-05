@@ -14,7 +14,7 @@ fun Application.module() {
     configureAppLifecycle(skipDatabaseInit)
     configureDI()
     configureSerialization()
-    // configureMonitoring()
+    configureMonitoring()
     configureRouting()
 }
 

@@ -9,6 +9,7 @@ ktor:
 
 app:
   host: "https://shortify.com"
+  apiUrl: "/api/v1"
 
 db:
   skipInitialisation: false
@@ -16,3 +17,4 @@ db:
   password: ""
   driver: "org.h2.Driver"
   url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;"
+  maximumPoolSize: 5

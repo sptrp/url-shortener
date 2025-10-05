@@ -1,6 +1,7 @@
 package com.iponomarev
 
 import com.iponomarev.repository.DatabaseFactory
+import com.iponomarev.util.getEnvOrConfig
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
@@ -8,8 +9,19 @@ import org.koin.core.context.GlobalContext
 
 fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
     this.monitor.subscribe(ApplicationStarted) {
-        val envMarker = environment.config.propertyOrNull("env_marker")?.getString() ?: "NO MARKER"
-        println("$envMarker IS LOADED")
+        val envMarker = getEnvOrConfig("env_marker", "ENV_MARKER", environment.config)
+        val appHost = getEnvOrConfig("app.host", "APP_HOST", environment.config)
+
+        environment.log.info(
+            """
+                Welcome to URL-shortener service!
+                ---
+                $envMarker IS LOADED
+                ---
+                Service is hosted on $appHost
+                ---
+            """.trimIndent()
+        )
 
         if (!skipDatabaseInit) {
             DatabaseFactory.init(environment.config)

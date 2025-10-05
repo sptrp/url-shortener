@@ -47,7 +47,7 @@ dependencies {
 }
 
 tasks.named<JavaExec>("run") {
-    val env = project.findProperty("env") as String? ?: "prod"
+    val env = project.findProperty("env") as String? ?: "local"
     jvmArgs = listOf("-Dconfig.resource=application-$env.yml")
 }
 

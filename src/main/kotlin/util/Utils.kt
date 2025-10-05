@@ -1,5 +1,6 @@
 package com.iponomarev.util
 
+import io.ktor.server.config.ApplicationConfig
 import java.net.URI
 import java.security.MessageDigest
 
@@ -47,4 +48,8 @@ fun normalizeUrlHost(url: String): String {
         uri.fragment
     )
     return normalizedUri.toString()
+}
+
+fun getEnvOrConfig(configKey: String, envKey: String, config: ApplicationConfig): String {
+    return System.getenv(envKey) ?: config.property(configKey).getString()
 }
