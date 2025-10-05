@@ -37,19 +37,25 @@ fun Application.configureRouting() {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             call.application.environment.log.warn("Bad request: ${cause.message}")
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "Bad Request")
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ResponseDto(success = false, url = null, error = cause.message ?: "Bad Request")
+            )
         }
 
         exception<NoSuchElementException> { call, cause ->
             call.application.environment.log.warn("Not found: ${cause.message}")
-            call.respond(HttpStatusCode.NotFound, cause.message ?: "Not Found")
+            call.respond(
+                HttpStatusCode.NotFound,
+                ResponseDto(success = false, url = null, error = cause.message ?: "Not Found")
+            )
         }
 
         exception<Throwable> { call, cause ->
             call.application.environment.log.error("Unhandled exception", cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
-                "Internal server error occurred. Please contact support."
+                ResponseDto(success = false, url = null, error = "Internal server error occurred. Please contact support.")
             )
         }
     }
@@ -61,14 +67,20 @@ fun Application.configureRouting() {
                 val request = call.receive<RequestDto>()
                 val url = request.url
 
-                if (!isValidUrl(request.url)) {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid URL format")
+                if (!isValidUrl(url)) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        ResponseDto(success = false, url = null, error = "Invalid URL format")
+                    )
                     return@post
                 }
 
                 val shortUrlCode = urlProcessorService.getShortURLCodeOrCreateNew(url)
                 val shortUrl = formatShortUrl(configProvider.appConfig.host, shortUrlCode)
-                call.respond(ResponseDto(url = shortUrl), typeInfo = TypeInfo(ResponseDto::class))
+                call.respond(
+                    ResponseDto(success = true, url = shortUrl, error = null),
+                    typeInfo = TypeInfo(ResponseDto::class)
+                )
             }
         }
 
@@ -76,15 +88,23 @@ fun Application.configureRouting() {
             val shortUrlCode = call.parameters["shortUrlCode"]
 
             if (shortUrlCode == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing shortUrlCode")
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ResponseDto(success = false, url = null, error = "Missing shortUrlCode")
+                )
                 return@get
             }
 
             val originalUrl = urlProcessorService.getOriginalURL(shortUrlCode)
             if (originalUrl != null) {
-                call.respond(ResponseDto(url = originalUrl))
+                call.respond(
+                    ResponseDto(success = true, url = originalUrl, error = null)
+                )
             } else {
-                call.respond(HttpStatusCode.NotFound, "Original URL not found")
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    ResponseDto(success = false, url = null, error = "Original URL not found")
+                )
             }
         }
 
