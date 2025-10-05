@@ -1,6 +1,6 @@
-package com.iponomarev.integrationTests.database
+package com.iponomarev.integration.repository
 
-import com.iponomarev.database.table.Urls
+import com.iponomarev.repository.table.Urls
 import com.iponomarev.util.BaseIntegrationTest
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction

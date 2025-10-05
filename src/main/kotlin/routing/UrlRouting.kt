@@ -19,6 +19,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.reflect.TypeInfo
+import org.koin.ktor.ext.inject
 
 const val API_URL = "/api/v1"
 
@@ -32,7 +33,7 @@ const val API_URL = "/api/v1"
  */
 fun Application.configureRouting() {
     val configProvider = ConfigProvider(environment)
-    val urlProcessorService = UrlProcessorService()
+    val urlProcessorService by inject<UrlProcessorService>()
 
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->

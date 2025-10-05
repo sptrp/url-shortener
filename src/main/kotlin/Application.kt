@@ -1,6 +1,6 @@
 package com.iponomarev
 
-import com.iponomarev.database.DatabaseFactory
+import com.iponomarev.repository.DatabaseFactory
 import com.iponomarev.routing.configureRouting
 import io.ktor.server.application.Application
 
@@ -9,6 +9,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module(skipDatabaseInit: Boolean = false) {
+    configureDI()
     configureSerialization()
     configureMonitoring()
     configureRouting()

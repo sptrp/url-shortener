@@ -1,10 +1,9 @@
-package com.iponomarev.integration
+package unit
 
 import com.iponomarev.util.BASE62_CHARS
 import com.iponomarev.util.formatShortUrl
 import com.iponomarev.util.generateShortBase62Code
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class UtilsTest {
@@ -15,7 +14,7 @@ class UtilsTest {
         val code1 = generateShortBase62Code(path)
         val code2 = generateShortBase62Code(path)
 
-        assertEquals(code1, code2)
+        Assertions.assertEquals(code1, code2)
     }
 
     @Test
@@ -24,7 +23,7 @@ class UtilsTest {
         val length = 8
         val code = generateShortBase62Code(path, length)
 
-        assertEquals(length, code.length)
+        Assertions.assertEquals(length, code.length)
     }
 
     @Test
@@ -33,7 +32,7 @@ class UtilsTest {
         val code = generateShortBase62Code(path)
 
         val allowedChars = BASE62_CHARS.toSet()
-        assertTrue(code.all { it in allowedChars })
+        Assertions.assertTrue(code.all { it in allowedChars })
     }
 
     @Test
@@ -45,6 +44,6 @@ class UtilsTest {
 
         val expectedHost = "$inputUrl/$shortCode"
 
-        assertEquals(expectedHost, result)
+        Assertions.assertEquals(expectedHost, result)
     }
 }

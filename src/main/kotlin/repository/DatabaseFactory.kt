@@ -1,6 +1,6 @@
-package com.iponomarev.database
+package com.iponomarev.repository
 
-import com.iponomarev.database.table.Urls
+import com.iponomarev.repository.table.Urls
 import io.ktor.server.config.ApplicationConfig
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils

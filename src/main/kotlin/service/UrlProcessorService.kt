@@ -1,5 +1,6 @@
 package com.iponomarev.service
 
+import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.generateShortBase62Code
 import java.net.MalformedURLException
 import java.net.URL
@@ -7,10 +8,10 @@ import java.net.URL
 /**
  * Service class responsible for processing URLs, including validation and shortening.
  *
- * @property urlDatabaseService the database service used for storing and retrieving URL data.
+ * @property urlRepository the database implementation used for storing and retrieving URL data.
  */
 class UrlProcessorService(
-    private val urlDatabaseService: UrlDatabaseService = UrlDatabaseService()
+    private val urlRepository: UrlRepository
 ) {
     companion object {
         /**
@@ -42,12 +43,12 @@ class UrlProcessorService(
      * @return the short URL code associated with the given URL.
      */
     fun getShortURLCodeOrCreateNew(url: String): String {
-        urlDatabaseService.findByUrl(url)?.let { persistedUrl ->
+        urlRepository.findByUrl(url)?.let { persistedUrl ->
             return persistedUrl.shortUrlCode
         }
 
         val shortUrlCode = generateShortBase62Code(URL(url).path)
-        val inserted = urlDatabaseService.insertUrl(url, shortUrlCode)
+        val inserted = urlRepository.insertUrl(url, shortUrlCode)
 
         return inserted.shortUrlCode
     }
@@ -59,5 +60,5 @@ class UrlProcessorService(
      * @return the original URL if found, or null if no matching URL exists.
      */
     fun getOriginalURL(shortUrlCode: String): String? =
-        urlDatabaseService.findByShortUrlCode(shortUrlCode)?.url
+        urlRepository.findByShortUrlCode(shortUrlCode)?.url
 }

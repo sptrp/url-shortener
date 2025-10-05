@@ -1,19 +1,19 @@
-package com.iponomarev
+package com.iponomarev.unit
 
-import com.iponomarev.database.entity.UrlEntity
-import com.iponomarev.service.UrlDatabaseService
+import com.iponomarev.repository.UrlRepository
+import com.iponomarev.repository.entity.UrlEntity
 import com.iponomarev.service.UrlProcessorService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class UrlProcessorServiceTest {
 
-    private val urlDatabaseService = mockk<UrlDatabaseService>()
-    private val service = UrlProcessorService(urlDatabaseService)
+    private val urlRepository = mockk<UrlRepository>()
+    private val service = UrlProcessorService(urlRepository)
 
     companion object {
         private const val URL = "https://example.com"
@@ -22,7 +22,7 @@ class UrlProcessorServiceTest {
 
     @BeforeEach
     fun setUp() {
-        every { urlDatabaseService.findByUrl(URL) } returns mockk<UrlEntity> {
+        every { urlRepository.findByUrl(URL) } returns mockk<UrlEntity> {
             every { url } returns URL
             every { shortUrlCode } returns SHORT_CODE
         }
@@ -32,8 +32,8 @@ class UrlProcessorServiceTest {
     fun `getShortURLCodeOrCreateNew returns existing code for known url`() {
         val shortURLCode = service.getShortURLCodeOrCreateNew(URL)
 
-        assertEquals(SHORT_CODE, shortURLCode)
-        verify(exactly = 1) { urlDatabaseService.findByUrl(URL) }
+        Assertions.assertEquals(SHORT_CODE, shortURLCode)
+        verify(exactly = 1) { urlRepository.findByUrl(URL) }
     }
 
     @Test
@@ -41,16 +41,16 @@ class UrlProcessorServiceTest {
         val newUrl = "https://newurl.com"
         val newCode = "xyz789"
 
-        every { urlDatabaseService.findByUrl(newUrl) } returns null
-        every { urlDatabaseService.insertUrl(newUrl, any()) } returns mockk<UrlEntity> {
+        every { urlRepository.findByUrl(newUrl) } returns null
+        every { urlRepository.insertUrl(newUrl, any()) } returns mockk<UrlEntity> {
             every { url } returns newUrl
             every { shortUrlCode } returns newCode
         }
 
         val shortURLCode = service.getShortURLCodeOrCreateNew(newUrl)
 
-        assertEquals(newCode, shortURLCode)
-        verify { urlDatabaseService.findByUrl(newUrl) }
-        verify { urlDatabaseService.insertUrl(newUrl, any()) }
+        Assertions.assertEquals(newCode, shortURLCode)
+        verify { urlRepository.findByUrl(newUrl) }
+        verify { urlRepository.insertUrl(newUrl, any()) }
     }
 }

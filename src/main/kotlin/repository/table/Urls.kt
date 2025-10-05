@@ -1,4 +1,4 @@
-package com.iponomarev.database.table
+package com.iponomarev.repository.table
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 

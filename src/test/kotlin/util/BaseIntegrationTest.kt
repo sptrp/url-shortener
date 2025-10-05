@@ -1,6 +1,6 @@
 package com.iponomarev.util
 
-import com.iponomarev.database.table.Urls
+import com.iponomarev.repository.table.Urls
 import com.iponomarev.module
 import com.iponomarev.service.UrlDatabaseService
 import com.typesafe.config.ConfigFactory

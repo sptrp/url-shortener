@@ -27,6 +27,8 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.config.yaml)
 
+    implementation(libs.koin.ktor)
+
     implementation(libs.logback.classic)
 
     implementation(libs.exposed.core)
