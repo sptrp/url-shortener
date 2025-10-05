@@ -1,4 +1,4 @@
-package com.iponomarev.unit
+package unit
 
 import com.iponomarev.repository.UrlRepository
 import com.iponomarev.repository.entity.UrlEntity

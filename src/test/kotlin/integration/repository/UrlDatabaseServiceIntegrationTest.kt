@@ -1,7 +1,7 @@
-package com.iponomarev.integration.repository
+package integration.repository
 
 import com.iponomarev.repository.table.Urls
-import com.iponomarev.util.BaseIntegrationTest
+import util.BaseIntegrationTest
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Assertions

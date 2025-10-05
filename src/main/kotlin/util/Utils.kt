@@ -1,5 +1,6 @@
 package com.iponomarev.util
 
+import java.net.URI
 import java.security.MessageDigest
 
 const val BASE62_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -10,13 +11,13 @@ const val BASE62_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR
  * The function hashes the input string (`path`) using SHA-256, takes the first 8 bytes of the hash,
  * converts them into a numeric value, and then encodes that number into a Base62 string of the specified length.
  *
- * @param path the input string to hash and encode (typically a URL path).
+ * @param url the input string to hash and encode (typically a URL path).
  * @param length the desired length of the output short code (default is 6).
  * @return a Base62 encoded a short string representing the hash of the input path.
  */
-fun generateShortBase62Code(path: String, length: Int = 6): String {
+fun generateShortBase62Code(url: String, length: Int = 6): String {
     val digest = MessageDigest.getInstance("SHA-256")
-    val hashBytes = digest.digest(path.toByteArray(Charsets.UTF_8))
+    val hashBytes = digest.digest(url.toByteArray(Charsets.UTF_8))
 
     var num = 0L
     for (i in 0 until 8) {
@@ -33,3 +34,17 @@ fun generateShortBase62Code(path: String, length: Int = 6): String {
 
 fun formatShortUrl(host: String, shortUrlCode: String) =
     "$host/$shortUrlCode"
+
+fun normalizeUrlHost(url: String): String {
+    val uri = URI(url)
+    val normalizedUri = URI(
+        uri.scheme?.lowercase(),
+        uri.userInfo,
+        uri.host?.lowercase(),
+        uri.port,
+        uri.path,
+        uri.query,
+        uri.fragment
+    )
+    return normalizedUri.toString()
+}

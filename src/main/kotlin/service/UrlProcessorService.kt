@@ -2,6 +2,7 @@ package com.iponomarev.service
 
 import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.generateShortBase62Code
+import com.iponomarev.util.normalizeUrlHost
 import java.net.MalformedURLException
 import java.net.URL
 
@@ -39,6 +40,8 @@ class UrlProcessorService(
      * Otherwise, generates a new short code based on the URL's path, inserts it into the database,
      * and returns the new short code.
      *
+     * The host part of url will be normalized.
+     *
      * @param url the original URL to shorten.
      * @return the short URL code associated with the given URL.
      */
@@ -47,8 +50,9 @@ class UrlProcessorService(
             return persistedUrl.shortUrlCode
         }
 
-        val shortUrlCode = generateShortBase62Code(URL(url).path)
-        val inserted = urlRepository.insertUrl(url, shortUrlCode)
+        val normalizedUrl = normalizeUrlHost(url)
+        val shortUrlCode = generateShortBase62Code(normalizedUrl)
+        val inserted = urlRepository.insertUrl(normalizedUrl, shortUrlCode)
 
         return inserted.shortUrlCode
     }

@@ -3,8 +3,11 @@ package unit
 import com.iponomarev.util.BASE62_CHARS
 import com.iponomarev.util.formatShortUrl
 import com.iponomarev.util.generateShortBase62Code
+import com.iponomarev.util.normalizeUrlHost
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFails
 
 class UtilsTest {
 
@@ -14,7 +17,7 @@ class UtilsTest {
         val code1 = generateShortBase62Code(path)
         val code2 = generateShortBase62Code(path)
 
-        Assertions.assertEquals(code1, code2)
+        assertEquals(code1, code2)
     }
 
     @Test
@@ -23,7 +26,7 @@ class UtilsTest {
         val length = 8
         val code = generateShortBase62Code(path, length)
 
-        Assertions.assertEquals(length, code.length)
+        assertEquals(length, code.length)
     }
 
     @Test
@@ -44,6 +47,45 @@ class UtilsTest {
 
         val expectedHost = "$inputUrl/$shortCode"
 
-        Assertions.assertEquals(expectedHost, result)
+        assertEquals(expectedHost, result)
+    }
+
+    @Test
+    fun `normalizeUrlHost lowercases host but preserves path and query`() {
+        val inputUrl = "HTTPS://ExAmPlE.CoM/Path/Page?Query=123#Fragment"
+        val expected = "https://example.com/Path/Page?Query=123#Fragment"
+
+        val normalized = normalizeUrlHost(inputUrl)
+
+        assertEquals(expected, normalized)
+    }
+
+    @Test
+    fun `normalizeUrlHost lowercases host with port and userinfo`() {
+        val inputUrl = "http://User:Pass@EXAMPLE.com:8080/path"
+        val expected = "http://User:Pass@example.com:8080/path"
+
+        val normalized = normalizeUrlHost(inputUrl)
+
+        assertEquals(expected, normalized)
+    }
+
+    @Test
+    fun `normalizeUrlHost throws exception for invalid URI`() {
+        val invalidUrl = "://missing.scheme.com"
+
+        assertFails {
+            normalizeUrlHost(invalidUrl)
+        }
+    }
+
+    @Test
+    fun `normalizeUrlHost works for url with no path`() {
+        val inputUrl = "https://EXAMPLE.com"
+        val expected = "https://example.com"
+
+        val normalized = normalizeUrlHost(inputUrl)
+
+        assertEquals(expected, normalized)
     }
 }
