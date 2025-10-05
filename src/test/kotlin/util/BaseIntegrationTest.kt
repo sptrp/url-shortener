@@ -1,7 +1,8 @@
-package com.iponomarev.util
+package util
 
 import com.iponomarev.repository.table.Urls
 import com.iponomarev.module
+import com.iponomarev.repository.UrlRepository
 import com.iponomarev.service.UrlDatabaseService
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.ApplicationConfig
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class BaseIntegrationTest {
 
-    protected lateinit var urlDatabaseService: UrlDatabaseService
+    protected lateinit var urlDatabaseService: UrlRepository
     private lateinit var testConfig: ApplicationConfig
 
     @BeforeAll
@@ -46,7 +47,7 @@ abstract class BaseIntegrationTest {
             config = testConfig
         }
         application {
-            module(skipDatabaseInit = true)
+            module()
         }
         block()
     }

@@ -8,14 +8,14 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.module(skipDatabaseInit: Boolean = false) {
+fun Application.module() {
+    val skipDatabaseInit = environment.config.propertyOrNull("ktor.db.skipInitialisation")?.getString()?.toBoolean()
+        ?: true
+
+    configureAppLifecycle(skipDatabaseInit)
     configureDI()
     configureSerialization()
     configureMonitoring()
     configureRouting()
-
-    if (!skipDatabaseInit) {
-        DatabaseFactory.init(environment.config)
-    }
 }
 

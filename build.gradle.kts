@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
     implementation(libs.h2)
+    implementation(libs.hikari)
 
     testImplementation(libs.ktor.server.test.host)
 

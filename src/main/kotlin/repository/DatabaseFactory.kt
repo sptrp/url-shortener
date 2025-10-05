@@ -1,26 +1,36 @@
 package com.iponomarev.repository
 
 import com.iponomarev.repository.table.Urls
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.ApplicationConfig
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
-    fun init(config: ApplicationConfig) {
-        val user = config.property("db.user").getString()
-        val password = config.property("db.password").getString()
-        val driver = config.property("db.driver").getString()
-        val url = config.property("db.url").getString()
+    private var hikariDataSource: HikariDataSource? = null
 
-        Database.connect(
-            url = url,
-            driver = driver,
-            user = user,
-            password = password
-        )
+    fun init(config: ApplicationConfig) {
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = config.property("db.url").getString()
+            driverClassName = config.property("db.driver").getString()
+            username = config.property("db.user").getString()
+            password = config.property("db.password").getString()
+            maximumPoolSize = 5 // Adjust pool size as needed
+            isAutoCommit = false
+            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        }
+
+        hikariDataSource = HikariDataSource(hikariConfig)
+        Database.connect(hikariDataSource!!)
+
         transaction {
             SchemaUtils.create(Urls) // Create tables here
         }
+    }
+
+    fun close() {
+        hikariDataSource?.close()
     }
 }
