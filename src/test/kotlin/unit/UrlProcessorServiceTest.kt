@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test
 class UrlProcessorServiceTest {
 
     private val urlRepository = mockk<UrlRepository>()
-    private val configProvider = mockk<ConfigProvider>(relaxed = true)
+    private val configProvider = mockk<ConfigProvider>(relaxed = true) {
+        every { appConfig.expirationTimeDays } returns 30
+    }
     private val service = UrlProcessorService(urlRepository, configProvider)
 
     companion object {
