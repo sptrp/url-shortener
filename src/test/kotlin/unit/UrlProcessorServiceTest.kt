@@ -1,5 +1,6 @@
 package unit
 
+import com.iponomarev.config.ConfigProvider
 import com.iponomarev.repository.UrlRepository
 import com.iponomarev.repository.entity.UrlEntity
 import com.iponomarev.service.UrlProcessorService
@@ -13,7 +14,8 @@ import org.junit.jupiter.api.Test
 class UrlProcessorServiceTest {
 
     private val urlRepository = mockk<UrlRepository>()
-    private val service = UrlProcessorService(urlRepository)
+    private val configProvider = mockk<ConfigProvider>(relaxed = true)
+    private val service = UrlProcessorService(urlRepository, configProvider)
 
     companion object {
         private const val URL = "https://example.com"

@@ -13,6 +13,12 @@ fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
         val envMarker = getEnvOrConfig("env_marker", "ENV_MARKER", environment.config)
         val appHost = getEnvOrConfig("app.host", "APP_HOST", environment.config)
         val appVersion = getEnvOrConfig("app.version", "APP_VERSION", environment.config)
+        val metricsEnabled = if (getEnvOrConfig("app.skipMetrics", "SKIP_METRICS", environment.config).toBoolean()) {
+            "DISABLED"
+        } else {
+            "ENABLED"
+        }
+
         val javaVersion = System.getProperty("java.version")
         val ktVersion = KotlinVersion.CURRENT
 
@@ -26,6 +32,7 @@ fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
             |Host: $appHost
             |Java version: $javaVersion
             |Kotlin version: $ktVersion
+            |Metrics: $metricsEnabled
             |Author: Ivan Ponomarev
             |Email: vankap0n@gmail.com
             |License: MIT
@@ -34,7 +41,7 @@ fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
             """.trimMargin()
         )
 
-        if (!skipDatabaseInit) {
+        if (!skipDatabaseInit) { // Skip for test environment
             DatabaseFactory.init(environment.config)
         }
     }

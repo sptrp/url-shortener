@@ -11,6 +11,7 @@ app:
   version: 1.0
   host: "https://shortify.com"
   apiUrl: "/api/v1"
+  skipMetrics: false
 
 db:
   skipInitialisation: false

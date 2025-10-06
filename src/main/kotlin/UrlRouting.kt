@@ -1,4 +1,4 @@
-package com.iponomarev.routing
+package com.iponomarev
 
 import com.iponomarev.config.ConfigProvider
 import com.iponomarev.model.RequestDto

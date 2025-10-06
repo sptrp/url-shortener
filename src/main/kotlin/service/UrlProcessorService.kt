@@ -1,5 +1,8 @@
 package com.iponomarev.service
 
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.Timer
+import com.iponomarev.config.ConfigProvider
 import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.Logging
 import com.iponomarev.util.generateShortBase62Code
@@ -13,8 +16,14 @@ import java.net.URL
  * @property urlRepository the database implementation used for storing and retrieving URL data.
  */
 class UrlProcessorService(
-    private val urlRepository: UrlRepository
+    private val urlRepository: UrlRepository,
+    configProvider: ConfigProvider,
+    metricsRegistry: MetricRegistry? = null
 ) : Logging {
+    private val urlCreatedCounter = metricsRegistry?.counter("url.created")
+    private val urlLookupTimer = metricsRegistry?.timer("url.lookup.time")
+    private val skipMetrics = configProvider.appConfig.skipMetrics
+
     companion object {
         /**
          * Validates a URL string.
@@ -47,7 +56,9 @@ class UrlProcessorService(
      * @return the short URL code associated with the given URL.
      */
     fun getShortURLCodeOrCreateNew(url: String): String {
-        urlRepository.findByUrl(url)?.let { persistedUrl ->
+        val foundUrl = measureIfMetricsEnabled(urlLookupTimer) { urlRepository.findByUrl(url) }
+
+        foundUrl?.let { persistedUrl ->
             log.debug("getShortURLCodeOrCreateNew: found persisted shortUrl {}", persistedUrl)
             return persistedUrl.shortUrlCode
         }
@@ -55,6 +66,7 @@ class UrlProcessorService(
         val normalizedUrl = normalizeUrlHost(url)
         val shortUrlCode = generateShortBase62Code(normalizedUrl)
         val inserted = urlRepository.insertUrl(normalizedUrl, shortUrlCode)
+        if (!skipMetrics) { urlCreatedCounter?.inc() }
 
         return inserted.shortUrlCode
     }
@@ -66,5 +78,19 @@ class UrlProcessorService(
      * @return the original URL if found, or null if no matching URL exists.
      */
     fun getOriginalURL(shortUrlCode: String): String? =
-        urlRepository.findByShortUrlCode(shortUrlCode)?.url
+        measureIfMetricsEnabled(urlLookupTimer) {
+            urlRepository.findByShortUrlCode(shortUrlCode)?.url
+        }
+
+    private inline fun <T> measureIfMetricsEnabled(timer: Timer?, block: () -> T): T {
+        if (skipMetrics || timer == null) {
+            return block()
+        }
+        val context = timer.time()
+        return try {
+            block()
+        } finally {
+            context.stop()
+        }
+    }
 }

@@ -8,6 +8,7 @@ ktor:
     port: 8080
 
 app:
+  skipMetrics: true
   version: 1.0
   host: "http://localhost:8080"
   apiUrl: "/api/v1"
