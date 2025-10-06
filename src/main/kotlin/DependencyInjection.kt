@@ -14,7 +14,7 @@ fun Application.configureDI(skipMetrics: Boolean) {
         modules(
             module {
                 single<UrlRepository> { UrlDatabaseService() }
-                single<ConfigProvider> { ConfigProvider(environment) }
+                single<ConfigProvider> { ConfigProvider(environment.config) }
                 if (!skipMetrics) {
                     single { UrlProcessorService(get(), get(), appMetricsRegistry) }
                 } else {

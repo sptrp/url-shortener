@@ -8,10 +8,11 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    val skipDatabaseInit = getEnvOrConfig("db.skipInitialisation", "DB_SKIP_INITIALISATION", environment.config).toBoolean()
+    val skipDatabaseInit =
+        getEnvOrConfig("db.skipInitialisation", "DB_SKIP_INITIALISATION", environment.config).toBoolean()
     val skipMetrics = getEnvOrConfig("app.skipMetrics", "SKIP_METRICS", environment.config).toBoolean()
 
-    configureAppLifecycle(skipDatabaseInit)
+    configureAppLifecycle(skipMetrics, skipDatabaseInit)
     configureMonitoring(skipMetrics)
     configureDI(skipMetrics)
     configureExceptionHandling()

@@ -1,7 +1,9 @@
 package com.iponomarev.util
 
 import io.ktor.server.config.ApplicationConfig
+import java.net.MalformedURLException
 import java.net.URI
+import java.net.URL
 import java.security.MessageDigest
 
 const val BASE62_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -31,6 +33,23 @@ fun generateShortBase62Code(url: String, length: Int = 6): String {
         num /= 62
     }
     return sb.toString()
+}
+
+/**
+ * Validates a URL string.
+ *
+ * Uses `java.net.URL` to check if the provided URL string is well-formed.
+ *
+ * @param url the URL string to validate.
+ * @return `true` if the URL is valid and well-formed, `false` otherwise.
+ */
+fun isValidUrl(url: String): Boolean {
+    return try {
+        URL(url)
+        true
+    } catch (_: MalformedURLException) {
+        false
+    }
 }
 
 fun formatShortUrl(host: String, shortUrlCode: String) =

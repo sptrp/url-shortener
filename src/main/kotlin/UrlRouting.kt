@@ -4,9 +4,9 @@ import com.iponomarev.config.ConfigProvider
 import com.iponomarev.model.RequestDto
 import com.iponomarev.model.ResponseDto
 import com.iponomarev.service.UrlProcessorService
-import com.iponomarev.service.UrlProcessorService.Companion.isValidUrl
 import com.iponomarev.util.AppLogger
 import com.iponomarev.util.formatShortUrl
+import com.iponomarev.util.isValidUrl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -21,7 +21,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.ktor.util.reflect.TypeInfo
 import org.koin.ktor.ext.inject
 
 /**
@@ -45,7 +44,7 @@ import org.koin.ktor.ext.inject
  * @see [UrlProcessorService]
  */
 fun Application.configureRouting() {
-    val configProvider = ConfigProvider(environment)
+    val configProvider by inject<ConfigProvider>()
     val urlProcessorService by inject<UrlProcessorService>()
     val apiUrl = configProvider.appConfig.apiUrl
 
@@ -63,7 +62,7 @@ fun Application.configureRouting() {
                 val url = request.url
 
                 AppLogger.log.debug("POST $apiUrl/shortUrl from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-                
+
                 if (!isValidUrl(url)) {
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -74,10 +73,7 @@ fun Application.configureRouting() {
 
                 val shortUrlCode = urlProcessorService.getShortURLCodeOrCreateNew(url)
                 val shortUrl = formatShortUrl(configProvider.appConfig.host, shortUrlCode)
-                call.respond(
-                    ResponseDto(success = true, url = shortUrl, error = null),
-                    typeInfo = TypeInfo(ResponseDto::class)
-                )
+                call.respond(ResponseDto(success = true, url = shortUrl, error = null))
             }
 
             /**
@@ -87,8 +83,9 @@ fun Application.configureRouting() {
              */
             get("/{shortUrlCode}") {
                 AppLogger.log.debug("GET $apiUrl/{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-                
-                val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
+
+                val originalUrl =
+                    call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
                 call.respond(ResponseDto(success = true, url = originalUrl, error = null))
             }
         }
@@ -100,7 +97,7 @@ fun Application.configureRouting() {
          */
         get("/{shortUrlCode}") {
             AppLogger.log.debug("GET /{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-            
+
             val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
             call.respondRedirect(originalUrl, permanent = true)
         }
@@ -119,7 +116,10 @@ fun Application.configureRouting() {
  * @param shortUrlCode nullable short URL code.
  * @return The original URL if found, null if not found or input invalid (with response sent).
  */
-private suspend fun RoutingCall.fetchOriginalUrl(urlProcessorService: UrlProcessorService, shortUrlCode: String?): String? {
+private suspend fun RoutingCall.fetchOriginalUrl(
+    urlProcessorService: UrlProcessorService,
+    shortUrlCode: String?
+): String? {
     if (shortUrlCode == null) {
         respond(
             HttpStatusCode.BadRequest,

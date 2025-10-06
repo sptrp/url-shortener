@@ -7,8 +7,6 @@ import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.Logging
 import com.iponomarev.util.generateShortBase62Code
 import com.iponomarev.util.normalizeUrlHost
-import java.net.MalformedURLException
-import java.net.URL
 
 /**
  * Service class responsible for processing URLs, including validation and shortening.
@@ -23,25 +21,6 @@ class UrlProcessorService(
     private val urlCreatedCounter = metricsRegistry?.counter("url.created")
     private val urlLookupTimer = metricsRegistry?.timer("url.lookup.time")
     private val skipMetrics = configProvider.appConfig.skipMetrics
-
-    companion object {
-        /**
-         * Validates a URL string.
-         *
-         * Uses `java.net.URL` to check if the provided URL string is well-formed.
-         *
-         * @param url the URL string to validate.
-         * @return `true` if the URL is valid and well-formed, `false` otherwise.
-         */
-        fun isValidUrl(url: String): Boolean {
-            return try {
-                URL(url)
-                true
-            } catch (_: MalformedURLException) {
-                false
-            }
-        }
-    }
 
     /**
      * Retrieves an existing short URL code for the given URL or creates a new one.
@@ -66,7 +45,9 @@ class UrlProcessorService(
         val normalizedUrl = normalizeUrlHost(url)
         val shortUrlCode = generateShortBase62Code(normalizedUrl)
         val inserted = urlRepository.insertUrl(normalizedUrl, shortUrlCode)
-        if (!skipMetrics) { urlCreatedCounter?.inc() }
+        if (!skipMetrics) {
+            urlCreatedCounter?.inc()
+        }
 
         return inserted.shortUrlCode
     }

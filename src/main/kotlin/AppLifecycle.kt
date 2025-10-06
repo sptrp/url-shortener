@@ -8,12 +8,16 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
 import org.koin.core.context.GlobalContext
 
-fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
+fun Application.configureAppLifecycle(skipMetrics: Boolean, skipDatabaseInit: Boolean) {
+    if (!skipDatabaseInit) { // Skip for test environment
+        DatabaseFactory.init(environment.config)
+    }
+
     this.monitor.subscribe(ApplicationStarted) {
         val envMarker = getEnvOrConfig("env_marker", "ENV_MARKER", environment.config)
         val appHost = getEnvOrConfig("app.host", "APP_HOST", environment.config)
         val appVersion = getEnvOrConfig("app.version", "APP_VERSION", environment.config)
-        val metricsEnabled = if (getEnvOrConfig("app.skipMetrics", "SKIP_METRICS", environment.config).toBoolean()) {
+        val metricsEnabled = if (skipMetrics) {
             "DISABLED"
         } else {
             "ENABLED"
@@ -34,23 +38,21 @@ fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
             |Kotlin version: $ktVersion
             |Metrics: $metricsEnabled
             |Author: Ivan Ponomarev
-            |Email: vankap0n@gmail.com
+            |Email: mailto:vankap0n@gmail.com
             |License: MIT
             |--------------------------------
             |Application started successfully!
             """.trimMargin()
         )
-
-        if (!skipDatabaseInit) { // Skip for test environment
-            DatabaseFactory.init(environment.config)
-        }
     }
 
     this.monitor.subscribe(ApplicationStopped) {
+        AppLogger.log.info("Shutting down application...")
         DatabaseFactory.close()
 
         if (GlobalContext.getOrNull() != null) {
             GlobalContext.stopKoin()
         }
+        AppLogger.log.info("Application stopped successfully")
     }
 }

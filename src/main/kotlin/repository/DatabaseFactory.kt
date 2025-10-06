@@ -1,6 +1,7 @@
 package com.iponomarev.repository
 
 import com.iponomarev.repository.table.Urls
+import com.iponomarev.util.Logging
 import com.iponomarev.util.getEnvOrConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -9,7 +10,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-object DatabaseFactory {
+object DatabaseFactory : Logging {
     private var hikariDataSource: HikariDataSource? = null
 
     fun init(config: ApplicationConfig) {
@@ -18,13 +19,15 @@ object DatabaseFactory {
             driverClassName = getEnvOrConfig("db.driver", "DB_DRIVER", config)
             username = getEnvOrConfig("db.user", "DB_USER", config)
             password = getEnvOrConfig("db.password", "DB_PASSWORD", config)
-            maximumPoolSize = (System.getenv("DB_MAXIMUM_POOL_SIZE") ?: config.property("db.maximumPoolSize").getString()).toInt()
+            maximumPoolSize =
+                (System.getenv("DB_MAXIMUM_POOL_SIZE") ?: config.property("db.maximumPoolSize").getString()).toInt()
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         }
 
         hikariDataSource = HikariDataSource(hikariConfig)
         Database.connect(hikariDataSource!!)
+        log.info("Database connected: ${hikariConfig.jdbcUrl}")
 
         transaction {
             SchemaUtils.create(Urls)
@@ -33,5 +36,6 @@ object DatabaseFactory {
 
     fun close() {
         hikariDataSource?.close()
+        log.info("Database connection closed")
     }
 }
