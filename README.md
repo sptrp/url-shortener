@@ -50,6 +50,8 @@ configuration, metrics monitoring, and Kubernetes deployment support.
    `curl -X POST http://localhost:8080/api/v1/shortUrl
    -H "Content-Type: application/json"
    -d '{"url": "https://www.google.com"}'`
+   
+   Make sure you removed all escape slashes from the link which could be added by copying.
 
    #### Retrieve the original URL
    `curl -L http://localhost:8080/api/v1/abc123`
