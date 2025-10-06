@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import util.BaseIntegrationTest
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
 
 class RoutingIntegrationTest : BaseIntegrationTest() {
@@ -286,5 +288,41 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
 
         val retrievedDto: ResponseDto = objectMapper.readValue(retrieved.bodyAsText())
         assertEquals(url, retrievedDto.url)
+    }
+
+    @Test
+    fun `expired URL cannot be retrieved via API`() = testing {
+        urlDatabaseService.insertUrl("https://expired.com", "expired123", Instant.now().minus(31, ChronoUnit.DAYS))
+        val response = client.get("$API_URL/expired123")
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+
+        val responseDto: ResponseDto = objectMapper.readValue(response.bodyAsText())
+        assertEquals(false, responseDto.success)
+        assertEquals(null, responseDto.url)
+        assertEquals("Original URL not found", responseDto.error)
+    }
+
+    @Test
+    fun `shortened URL has correct expiration time`() = testing {
+        val originalUrl = "https://example.com/expiry-test"
+
+        client.post(POST_SHORT_URL) {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(RequestDto(originalUrl)))
+        }
+
+        val persisted = urlDatabaseService.findByUrl(originalUrl)
+
+        assertNotNull(persisted)
+
+        val now = Instant.now()
+        val expectedExpiry = now.plus(30, ChronoUnit.DAYS)
+        val actualExpiry = persisted.expiresAt
+
+        val diffSeconds = ChronoUnit.SECONDS.between(expectedExpiry, actualExpiry)
+        assert(kotlin.math.abs(diffSeconds) < 60) {
+            "Expiration time should be ~30 days from now, but difference is $diffSeconds seconds"
+        }
     }
 }

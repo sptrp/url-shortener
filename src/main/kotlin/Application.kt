@@ -12,9 +12,9 @@ fun Application.module() {
         getEnvOrConfig("db.skipInitialisation", "DB_SKIP_INITIALISATION", environment.config).toBoolean()
     val skipMetrics = getEnvOrConfig("app.skipMetrics", "SKIP_METRICS", environment.config).toBoolean()
 
+    configureDI(skipMetrics)
     configureAppLifecycle(skipMetrics, skipDatabaseInit)
     configureMonitoring(skipMetrics)
-    configureDI(skipMetrics)
     configureExceptionHandling()
     configureSerialization()
     configureRouting()

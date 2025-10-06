@@ -11,6 +11,7 @@ configuration, metrics monitoring, and Kubernetes deployment support.
 - 🐳 Kubernetes-ready with ConfigMaps
 - 🔄 Environment-based configuration (local, dev, prod)
 - 💾 H2 database with HikariCP connection pooling
+- ⏰ Automatic URL expiration (configurable, default 30 days)
 
 ## Tech Stack
 
@@ -72,19 +73,20 @@ Prod environment
 
 #### Key Configuration Options
 
-| Config Key              | Env Variable             | Description            | Default                 |
-|-------------------------|--------------------------|------------------------|-------------------------|
-| `app.host`              | `APP_HOST`               | Service base URL       | `http://localhost:8080` |
-| `app.version`           | `APP_VERSION`            | Application version    | `1.0`                   |
-| `app.skipMetrics`       | `SKIP_METRICS`           | Disable metrics        | `false`                 |
-| `app.apiUrl`            | `API_URL`                | API base path          | `/api/v1`               |
-| `db.url`                | `DB_URL`                 | Database JDBC URL      | H2 in-memory            |
-| `db.driver`             | `DB_DRIVER`              | Database driver class  | `org.h2.Driver`         |
-| `db.user`               | `DB_USER`                | Database username      | -                       |
-| `db.password`           | `DB_PASSWORD`            | Database password      | -                       |
-| `db.maximumPoolSize`    | `DB_MAXIMUM_POOL_SIZE`   | HikariCP max pool size | `5`                     |
-| `db.skipInitialisation` | `DB_SKIP_INITIALISATION` | Skip DB init for tests | `false`                 |
-| `env_marker`            | `ENV_MARKER`             | Environment identifier | `local`                 |
+| Config Key              | Env Variable             | Description                   | Default                 |
+|-------------------------|--------------------------|-------------------------------|-------------------------|
+| `app.host`              | `APP_HOST`               | Service base URL              | `http://localhost:8080` |
+| `app.version`           | `APP_VERSION`            | Application version           | `1.0`                   |
+| `app.skipMetrics`       | `SKIP_METRICS`           | Disable metrics               | `false`                 |
+| `app.apiUrl`            | `API_URL`                | API base path                 | `/api/v1`               |
+| `db.url`                | `DB_URL`                 | Database JDBC URL             | H2 in-memory            |
+| `db.driver`             | `DB_DRIVER`              | Database driver class         | `org.h2.Driver`         |
+| `db.user`               | `DB_USER`                | Database username             | -                       |
+| `db.password`           | `DB_PASSWORD`            | Database password             | -                       |
+| `db.maximumPoolSize`    | `DB_MAXIMUM_POOL_SIZE`   | HikariCP max pool size        | `5`                     |
+| `db.skipInitialisation` | `DB_SKIP_INITIALISATION` | Skip DB init for tests        | `false`                 |
+| `db.expirationTimeDays` | `EXPIRATION_TIME_DAYS`   | Time for DB entries to expire | 30                      |
+| `env_marker`            | `ENV_MARKER`             | Environment identifier        | `local`                 |
 
 ## Building
 

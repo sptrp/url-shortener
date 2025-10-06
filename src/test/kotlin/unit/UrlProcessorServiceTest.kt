@@ -44,7 +44,7 @@ class UrlProcessorServiceTest {
         val newCode = "xyz789"
 
         every { urlRepository.findByUrl(newUrl) } returns null
-        every { urlRepository.insertUrl(newUrl, any()) } returns mockk<UrlEntity> {
+        every { urlRepository.insertUrl(newUrl, any(), any()) } returns mockk<UrlEntity> {
             every { url } returns newUrl
             every { shortUrlCode } returns newCode
         }
@@ -53,6 +53,6 @@ class UrlProcessorServiceTest {
 
         Assertions.assertEquals(newCode, shortURLCode)
         verify { urlRepository.findByUrl(newUrl) }
-        verify { urlRepository.insertUrl(newUrl, any()) }
+        verify { urlRepository.insertUrl(newUrl, any(), any()) }
     }
 }

@@ -10,4 +10,6 @@ class UrlEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var url by Urls.url
     var shortUrlCode by Urls.shortUrlCode
+    var createdAt by Urls.createdAt
+    var expiresAt by Urls.expiresAt
 }

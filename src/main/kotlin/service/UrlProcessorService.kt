@@ -7,6 +7,8 @@ import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.Logging
 import com.iponomarev.util.generateShortBase62Code
 import com.iponomarev.util.normalizeUrlHost
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * Service class responsible for processing URLs, including validation and shortening.
@@ -15,7 +17,7 @@ import com.iponomarev.util.normalizeUrlHost
  */
 class UrlProcessorService(
     private val urlRepository: UrlRepository,
-    configProvider: ConfigProvider,
+    private val configProvider: ConfigProvider,
     metricsRegistry: MetricRegistry? = null
 ) : Logging {
     private val urlCreatedCounter = metricsRegistry?.counter("url.created")
@@ -44,7 +46,8 @@ class UrlProcessorService(
 
         val normalizedUrl = normalizeUrlHost(url)
         val shortUrlCode = generateShortBase62Code(normalizedUrl)
-        val inserted = urlRepository.insertUrl(normalizedUrl, shortUrlCode)
+
+        val inserted = urlRepository.insertUrl(normalizedUrl, shortUrlCode, calculateExpirationTime())
         if (!skipMetrics) {
             urlCreatedCounter?.inc()
         }
@@ -73,5 +76,11 @@ class UrlProcessorService(
         } finally {
             context.stop()
         }
+    }
+
+    private fun calculateExpirationTime(): Instant {
+        val expirationDays = configProvider.appConfig.expirationTimeDays
+        require(expirationDays > 0) { "Expiration time must be positive, got: $expirationDays" }
+        return Instant.now().plus(expirationDays, ChronoUnit.DAYS)
     }
 }

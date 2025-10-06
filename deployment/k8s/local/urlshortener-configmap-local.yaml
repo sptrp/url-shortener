@@ -13,4 +13,5 @@ data:
   DB_DRIVER: "org.h2.Driver"
   DB_URL: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;"
   DB_MAXIMUM_POOL_SIZE: "5"
+  EXPIRATION_TIME_DAYS: "30"
   SKIP_METRICS: "true"
