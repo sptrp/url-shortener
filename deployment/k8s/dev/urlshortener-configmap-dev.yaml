@@ -6,6 +6,7 @@ data:
   ENV_MARKER: "DEV CONFIGURATION - k8s"
   APP_HOST: "https://dev.shortify.com"
   API_URL: "/api/v1"
+  APP_VERSION: "1.0"
   DB_SKIP_INITIALISATION: "false"
   DB_USER: "iponomarev"
   DB_PASSWORD: ""

@@ -5,11 +5,11 @@ import com.iponomarev.model.RequestDto
 import com.iponomarev.model.ResponseDto
 import com.iponomarev.service.UrlProcessorService
 import com.iponomarev.service.UrlProcessorService.Companion.isValidUrl
+import com.iponomarev.util.AppLogger
 import com.iponomarev.util.formatShortUrl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.receive
@@ -49,32 +49,6 @@ fun Application.configureRouting() {
     val urlProcessorService by inject<UrlProcessorService>()
     val apiUrl = configProvider.appConfig.apiUrl
 
-    install(StatusPages) {
-        exception<IllegalArgumentException> { call, cause ->
-            call.application.environment.log.warn("Bad request: ${cause.message}")
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ResponseDto(success = false, url = null, error = cause.message ?: "Bad Request")
-            )
-        }
-
-        exception<NoSuchElementException> { call, cause ->
-            call.application.environment.log.warn("Not found: ${cause.message}")
-            call.respond(
-                HttpStatusCode.NotFound,
-                ResponseDto(success = false, url = null, error = cause.message ?: "Not Found")
-            )
-        }
-
-        exception<Throwable> { call, cause ->
-            call.application.environment.log.error("Unhandled exception", cause)
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                ResponseDto(success = false, url = null, error = "Internal server error occurred. Please contact support.")
-            )
-        }
-    }
-
     routing {
 
         route(apiUrl) {
@@ -88,8 +62,8 @@ fun Application.configureRouting() {
                 val request = call.receive<RequestDto>()
                 val url = request.url
 
-                environment.log.info("POST $apiUrl/shortUrl from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-
+                AppLogger.log.debug("POST $apiUrl/shortUrl from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
+                
                 if (!isValidUrl(url)) {
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -112,8 +86,8 @@ fun Application.configureRouting() {
              * @see [UrlProcessorService]
              */
             get("/{shortUrlCode}") {
-                environment.log.info("GET $apiUrl/{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-
+                AppLogger.log.debug("GET $apiUrl/{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
+                
                 val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
                 call.respond(ResponseDto(success = true, url = originalUrl, error = null))
             }
@@ -125,8 +99,8 @@ fun Application.configureRouting() {
          * Performs a permanent redirect (HTTP 301).
          */
         get("/{shortUrlCode}") {
-            environment.log.info("GET /{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
-
+            AppLogger.log.debug("GET /{shortUrlCode} from ${call.request.origin.remoteHost} (${call.request.headers["User-Agent"] ?: "Unknown"})")
+            
             val originalUrl = call.fetchOriginalUrl(urlProcessorService, call.parameters["shortUrlCode"]) ?: return@get
             call.respondRedirect(originalUrl, permanent = true)
         }

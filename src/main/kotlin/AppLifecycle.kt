@@ -1,6 +1,7 @@
 package com.iponomarev
 
 import com.iponomarev.repository.DatabaseFactory
+import com.iponomarev.util.AppLogger
 import com.iponomarev.util.getEnvOrConfig
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
@@ -11,16 +12,26 @@ fun Application.configureAppLifecycle(skipDatabaseInit: Boolean) {
     this.monitor.subscribe(ApplicationStarted) {
         val envMarker = getEnvOrConfig("env_marker", "ENV_MARKER", environment.config)
         val appHost = getEnvOrConfig("app.host", "APP_HOST", environment.config)
+        val appVersion = getEnvOrConfig("app.version", "APP_VERSION", environment.config)
+        val javaVersion = System.getProperty("java.version")
+        val ktVersion = KotlinVersion.CURRENT
 
-        environment.log.info(
+        AppLogger.log.info(
             """
-                Welcome to URL-shortener service!
-                ---
-                $envMarker IS LOADED
-                ---
-                Service is hosted on $appHost
-                ---
-            """.trimIndent()
+            |
+            |Welcome to URL-shortener service!
+            |--------------------------------
+            |Version: $appVersion
+            |Environment: $envMarker
+            |Host: $appHost
+            |Java version: $javaVersion
+            |Kotlin version: $ktVersion
+            |Author: Ivan Ponomarev
+            |Email: vankap0n@gmail.com
+            |License: MIT
+            |--------------------------------
+            |Application started successfully!
+            """.trimMargin()
         )
 
         if (!skipDatabaseInit) {

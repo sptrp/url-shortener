@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.iponomarev"
-version = "0.0.1"
+version = project.findProperty("app.version") as String? ?: "1.0"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
@@ -48,8 +48,12 @@ dependencies {
 
 tasks.named<JavaExec>("run") {
     val env = project.findProperty("env") as String? ?: "local"
-    jvmArgs = listOf("-Dconfig.resource=application-$env.yml")
+    jvmArgs = listOf(
+        "-Dconfig.resource=application-$env.yml",
+        "-Dlogback.configurationFile=logback-$env.xml"
+    )
 }
+
 
 tasks.test {
     useJUnitPlatform()

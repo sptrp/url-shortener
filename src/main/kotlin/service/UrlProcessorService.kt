@@ -1,6 +1,7 @@
 package com.iponomarev.service
 
 import com.iponomarev.repository.UrlRepository
+import com.iponomarev.util.Logging
 import com.iponomarev.util.generateShortBase62Code
 import com.iponomarev.util.normalizeUrlHost
 import java.net.MalformedURLException
@@ -13,7 +14,7 @@ import java.net.URL
  */
 class UrlProcessorService(
     private val urlRepository: UrlRepository
-) {
+) : Logging {
     companion object {
         /**
          * Validates a URL string.
@@ -47,6 +48,7 @@ class UrlProcessorService(
      */
     fun getShortURLCodeOrCreateNew(url: String): String {
         urlRepository.findByUrl(url)?.let { persistedUrl ->
+            log.debug("getShortURLCodeOrCreateNew: found persisted shortUrl {}", persistedUrl)
             return persistedUrl.shortUrlCode
         }
 

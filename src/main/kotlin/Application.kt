@@ -15,6 +15,7 @@ fun Application.module() {
     configureDI()
     configureSerialization()
     configureMonitoring()
+    configureExceptionHandling()
     configureRouting()
 }
 

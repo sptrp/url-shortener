@@ -27,7 +27,7 @@ object DatabaseFactory {
         Database.connect(hikariDataSource!!)
 
         transaction {
-            SchemaUtils.create(Urls) // Create tables here
+            SchemaUtils.create(Urls)
         }
     }
 
