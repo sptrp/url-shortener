@@ -1,13 +1,13 @@
 package integration.repository
 
 import com.iponomarev.repository.table.Urls
+import com.iponomarev.util.getNowOffSet
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import util.BaseIntegrationTest
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
@@ -24,7 +24,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
         val originalUrl = "https://example.com"
         val shortCode = "abc123"
 
-        val inserted = urlDatabaseService.insertUrl(originalUrl, shortCode,  Instant.now().plus(30, ChronoUnit.DAYS))
+        val inserted = urlDatabaseService.insertUrl(originalUrl, shortCode, getNowOffSet().plus(30, ChronoUnit.DAYS))
         Assertions.assertNotNull(inserted)
         Assertions.assertEquals(originalUrl, inserted.url)
         Assertions.assertEquals(shortCode, inserted.shortUrlCode)
@@ -40,7 +40,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test findByUrl returns inserted url`() {
         val originalUrl = "https://testurl.com"
         val shortCode = "xyz789"
-        urlDatabaseService.insertUrl(originalUrl, shortCode,  Instant.now().plus(30, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl(originalUrl, shortCode, getNowOffSet().plus(30, ChronoUnit.DAYS))
 
         val found = urlDatabaseService.findByUrl(originalUrl)
         Assertions.assertNotNull(found)
@@ -51,7 +51,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test findByShortUrlCode returns inserted url`() {
         val originalUrl = "https://testurl.com"
         val shortCode = "xyz789"
-        urlDatabaseService.insertUrl(originalUrl, shortCode,  Instant.now().plus(30, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl(originalUrl, shortCode, getNowOffSet().plus(30, ChronoUnit.DAYS))
 
         val found = urlDatabaseService.findByShortUrlCode(shortCode)
         Assertions.assertNotNull(found)
@@ -62,7 +62,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test findByShortUrlCode returns null for expired url`() {
         val originalUrl = "https://expired-url.com"
         val shortCode = "expired123"
-        val expiresAt =  Instant.now().minus(1, ChronoUnit.DAYS)
+        val expiresAt = getNowOffSet().minus(1, ChronoUnit.DAYS)
 
         urlDatabaseService.insertUrl(originalUrl, shortCode, expiresAt)
 
@@ -74,7 +74,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test findByUrl returns null for expired url`() {
         val originalUrl = "https://expired-url.com"
         val shortCode = "expired456"
-        val expiresAt = Instant.now().minus(5, ChronoUnit.DAYS)
+        val expiresAt = getNowOffSet().minus(5, ChronoUnit.DAYS)
 
         urlDatabaseService.insertUrl(originalUrl, shortCode, expiresAt)
 
@@ -86,11 +86,11 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test deleteExpiredUrls removes only expired entries`() {
         val expiredUrl = "https://expired.com"
         val expiredCode = "exp123"
-        urlDatabaseService.insertUrl(expiredUrl, expiredCode,  Instant.now().minus(1, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl(expiredUrl, expiredCode, getNowOffSet().minus(1, ChronoUnit.DAYS))
 
         val validUrl = "https://valid.com"
         val validCode = "val123"
-        urlDatabaseService.insertUrl(validUrl, validCode,  Instant.now().plus(30, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl(validUrl, validCode, getNowOffSet().plus(30, ChronoUnit.DAYS))
 
         val deletedCount = urlDatabaseService.deleteExpiredUrls()
 
@@ -107,7 +107,7 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
     fun `test deleteExpiredUrls returns 0 when no expired entries`() {
         val validUrl = "https://valid.com"
         val validCode = "val123"
-        urlDatabaseService.insertUrl(validUrl, validCode,  Instant.now().plus(30, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl(validUrl, validCode, getNowOffSet().plus(30, ChronoUnit.DAYS))
 
         val deletedCount = urlDatabaseService.deleteExpiredUrls()
 
@@ -116,9 +116,9 @@ class UrlDatabaseServiceIntegrationTest : BaseIntegrationTest() {
 
     @Test
     fun `test multiple urls with different expiration times`() {
-        val expiresIn1Hour = Instant.now().plus(1, ChronoUnit.HOURS)
-        val expiresIn30Days =  Instant.now().plus(30, ChronoUnit.DAYS)
-        val expired = Instant.now().minus(1, ChronoUnit.HOURS)
+        val expiresIn1Hour = getNowOffSet().plus(1, ChronoUnit.HOURS)
+        val expiresIn30Days = getNowOffSet().plus(30, ChronoUnit.DAYS)
+        val expired = getNowOffSet().minus(1, ChronoUnit.HOURS)
 
         urlDatabaseService.insertUrl("https://short-lived.com", "short1", expiresIn1Hour)
         urlDatabaseService.insertUrl("https://long-lived.com", "long1", expiresIn30Days)

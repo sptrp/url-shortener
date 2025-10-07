@@ -6,8 +6,9 @@ import com.iponomarev.config.ConfigProvider
 import com.iponomarev.repository.UrlRepository
 import com.iponomarev.util.Logging
 import com.iponomarev.util.generateShortBase62Code
+import com.iponomarev.util.getNowOffSet
 import com.iponomarev.util.normalizeUrlHost
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 
 /**
@@ -78,9 +79,9 @@ class UrlProcessorService(
         }
     }
 
-    private fun calculateExpirationTime(): Instant {
+    private fun calculateExpirationTime(): OffsetDateTime {
         val expirationDays = configProvider.appConfig.expirationTimeDays
         require(expirationDays > 0) { "Expiration time must be positive, got: $expirationDays" }
-        return Instant.now().plus(expirationDays, ChronoUnit.DAYS)
+        return getNowOffSet().plus(expirationDays, ChronoUnit.DAYS)
     }
 }

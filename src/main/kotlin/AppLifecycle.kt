@@ -20,8 +20,18 @@ fun Application.configureAppLifecycle(skipMetrics: Boolean, skipDatabaseInit: Bo
         val envMarker = getEnvOrConfig("env_marker", "ENV_MARKER", environment.config)
         val appHost = getEnvOrConfig("app.host", "APP_HOST", environment.config)
         val appVersion = getEnvOrConfig("app.version", "APP_VERSION", environment.config)
-        val metricsEnabled = if (skipMetrics) { "DISABLED" } else { "ENABLED" }
-        val databaseCleanupEnabled = if (skipDatabaseInit) { "DISABLED" } else { "ENABLED" }
+        val metricsEnabled = if (skipMetrics) {
+            "DISABLED"
+        } else {
+            "ENABLED"
+        }
+        val databaseCleanupEnabled = if (skipDatabaseInit) {
+            "DISABLED"
+        } else {
+            "ENABLED"
+        }
+        val cleanupIntervalHours =
+            getEnvOrConfig("db.cleanupIntervalHours", "DB_CLEANUP_INTERVAL_HOURS", environment.config).toLong()
 
         val javaVersion = System.getProperty("java.version")
         val ktVersion = KotlinVersion.CURRENT
@@ -48,7 +58,7 @@ fun Application.configureAppLifecycle(skipMetrics: Boolean, skipDatabaseInit: Bo
 
         if (!skipDatabaseInit) {
             val urlRepository by inject<UrlRepository>()
-            CleanupScheduler.start(urlRepository)
+            CleanupScheduler.start(urlRepository, cleanupIntervalHours)
         }
     }
 

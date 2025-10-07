@@ -5,6 +5,9 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
 import java.security.MessageDigest
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 const val BASE62_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -72,3 +75,5 @@ fun normalizeUrlHost(url: String): String {
 fun getEnvOrConfig(configKey: String, envKey: String, config: ApplicationConfig): String {
     return System.getenv(envKey) ?: config.property(configKey).getString()
 }
+
+fun getNowOffSet(): OffsetDateTime = Instant.now().atOffset(ZoneId.systemDefault().rules.getOffset(Instant.now()))

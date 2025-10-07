@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.iponomarev.model.RequestDto
 import com.iponomarev.model.ResponseDto
 import com.iponomarev.repository.table.Urls
+import com.iponomarev.util.getNowOffSet
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -292,7 +293,7 @@ class RoutingIntegrationTest : BaseIntegrationTest() {
 
     @Test
     fun `expired URL cannot be retrieved via API`() = testing {
-        urlDatabaseService.insertUrl("https://expired.com", "expired123", Instant.now().minus(31, ChronoUnit.DAYS))
+        urlDatabaseService.insertUrl("https://expired.com", "expired123", getNowOffSet().minus(31, ChronoUnit.DAYS))
         val response = client.get("$API_URL/expired123")
 
         assertEquals(HttpStatusCode.NotFound, response.status)

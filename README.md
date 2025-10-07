@@ -50,7 +50,7 @@ configuration, metrics monitoring, and Kubernetes deployment support.
    `curl -X POST http://localhost:8080/api/v1/shortUrl
    -H "Content-Type: application/json"
    -d '{"url": "https://www.google.com"}'`
-   
+
    Make sure you removed all escape slashes from the link which could be added by copying.
 
    #### Retrieve the original URL
@@ -75,20 +75,21 @@ Prod environment
 
 #### Key Configuration Options
 
-| Config Key              | Env Variable             | Description                   | Default                 |
-|-------------------------|--------------------------|-------------------------------|-------------------------|
-| `app.host`              | `APP_HOST`               | Service base URL              | `http://localhost:8080` |
-| `app.version`           | `APP_VERSION`            | Application version           | `1.0`                   |
-| `app.skipMetrics`       | `SKIP_METRICS`           | Disable metrics               | `false`                 |
-| `app.apiUrl`            | `API_URL`                | API base path                 | `/api/v1`               |
-| `db.url`                | `DB_URL`                 | Database JDBC URL             | H2 in-memory            |
-| `db.driver`             | `DB_DRIVER`              | Database driver class         | `org.h2.Driver`         |
-| `db.user`               | `DB_USER`                | Database username             | -                       |
-| `db.password`           | `DB_PASSWORD`            | Database password             | -                       |
-| `db.maximumPoolSize`    | `DB_MAXIMUM_POOL_SIZE`   | HikariCP max pool size        | `5`                     |
-| `db.skipInitialisation` | `DB_SKIP_INITIALISATION` | Skip DB init for tests        | `false`                 |
-| `db.expirationTimeDays` | `EXPIRATION_TIME_DAYS`   | Time for DB entries to expire | 30                      |
-| `env_marker`            | `ENV_MARKER`             | Environment identifier        | `local`                 |
+| Config Key              | Env Variable                | Description                   | Default                 |
+|-------------------------|-----------------------------|-------------------------------|-------------------------|
+| `app.host`              | `APP_HOST`                  | Service base URL              | `http://localhost:8080` |
+| `app.version`           | `APP_VERSION`               | Application version           | `1.0`                   |
+| `app.skipMetrics`       | `SKIP_METRICS`              | Disable metrics               | `false`                 |
+| `app.apiUrl`            | `API_URL`                   | API base path                 | `/api/v1`               |
+| `db.url`                | `DB_URL`                    | Database JDBC URL             | H2 in-memory            |
+| `db.driver`             | `DB_DRIVER`                 | Database driver class         | `org.h2.Driver`         |
+| `db.user`               | `DB_USER`                   | Database username             | -                       |
+| `db.password`           | `DB_PASSWORD`               | Database password             | -                       |
+| `db.maximumPoolSize`    | `DB_MAXIMUM_POOL_SIZE`      | HikariCP max pool size        | `5`                     |
+| `db.skipInitialisation` | `DB_SKIP_INITIALISATION`    | Skip DB init for tests        | `false`                 |
+| `db.expirationTimeDays` | `DB_EXPIRATION_TIME_DAYS`   | Time for DB entries to expire | 30                      |
+| `db.expirationTimeDays` | `DB_CLEANUP_INTERVAL_HOURS` | Time for cleanup job interval | 24                      |
+| `env_marker`            | `ENV_MARKER`                | Environment identifier        | `local`                 |
 
 ## Building
 
